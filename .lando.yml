@@ -1,0 +1,54 @@
+name: svoidveri-d8
+recipe: drupal8
+config:
+  php: 7.4
+  webroot: web/
+  via: nginx
+  database: mysql:5.7
+  drush: true
+  xdebug: true
+  drupal: true
+  config:
+    database: mysql
+    php: .lando/php.ini
+proxy:
+  mailhog:
+    - mail.svoidveri-d8.lndo.site
+  phpmyadmin:
+    - pma.svoidveri-d8.lndo.site
+services:
+  appserver:
+    overrides:
+      environment:
+        DB_HOST: database
+        DB_NAME: drupal8
+        DB_USER: drupal8
+        DB_PASSWORD: drupal8
+        DB_ROOT_PASSWORD: ""
+        DB_DRIVER: mysql
+        PHP_IDE_CONFIG: 'serverName=svoidveri-d8.lndo.site'
+        DRUSH_OPTIONS_URI: 'http://svoidveri-d8.lndo.site'
+        COMPOSE_HTTP_TIMEOUT: 3600
+        PWD: '/app'
+    build:
+      - composer install --ansi --optimize-autoloader --quiet --no-interaction
+
+  mailhog:
+    type: mailhog
+    hogfrom:
+      - appserver
+  phpmyadmin:
+    type: phpmyadmin
+    hosts:
+      - database
+tooling:
+  phpcs:
+    service: appserver
+    description: 'Run phpcs'
+    cmd:
+      - phpcs
+  phpcbf:
+    service: appserver
+    description: 'Run phpcbf'
+    cmd:
+      - /app/vendor/bin/phpcbf
